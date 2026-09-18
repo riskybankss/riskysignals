@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Quant-Alpha Live Signal & Macro Center</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    *{box-sizing:border-box} body{background:radial-gradient(circle at top right,rgba(16,185,129,.08),transparent 35%),#020617}
+    .glass{background:rgba(15,23,42,.72);backdrop-filter:blur(12px)} .terminal{font-family:"Courier New",monospace}
+    .pulse-dot{animation:pulse 1.5s infinite}@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+    .signal-buy{border-color:rgba(16,185,129,.45);background:linear-gradient(135deg,rgba(16,185,129,.10),rgba(15,23,42,.75))}
+    .signal-sell{border-color:rgba(239,68,68,.45);background:linear-gradient(135deg,rgba(239,68,68,.10),rgba(15,23,42,.75))}
+    .signal-wait{border-color:rgba(245,158,11,.35);background:linear-gradient(135deg,rgba(245,158,11,.08),rgba(15,23,42,.75))}
+    .price-up{color:#34d399}.price-down{color:#f87171}
+    .stat{background:rgba(2,6,23,.55);border:1px solid #1e293b;border-radius:.75rem;padding:.75rem}
+    .stat span{display:block;color:#64748b;font-size:9px;text-transform:uppercase;letter-spacing:.12em}.stat strong{display:block;margin-top:.25rem;font-size:.85rem}
+    .scrollbar::-webkit-scrollbar{height:5px}.scrollbar::-webkit-scrollbar-track{background:#020617}.scrollbar::-webkit-scrollbar-thumb{background:#334155;border-radius:10px}
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen">
+<header class="sticky top-0 z-50 border-b border-slate-800 bg-slate-950/90 backdrop-blur-xl">
+  <div class="max-w-[1800px] mx-auto px-4 sm:px-6 py-4 flex flex-col lg:flex-row justify-between items-center gap-4">
+    <div class="flex items-center gap-3">
+      <div class="w-11 h-11 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center shadow-lg shadow-emerald-500/20"><i class="fa-solid fa-satellite-dish text-lg"></i></div>
+      <div><h1 class="text-lg sm:text-xl font-black tracking-tight">QUANT-ALPHA</h1><p class="text-[10px] sm:text-xs text-slate-500 uppercase tracking-widest">Live Market & Macro Intelligence</p></div>
+    </div>
+    <div class="flex flex-wrap justify-center gap-3">
+      <div class="px-3 py-2 rounded-lg border border-slate-800 bg-slate-900 terminal text-xs"><span class="text-slate-500">SYSTEM</span><span id="systemStatus" class="text-emerald-400 ml-2"><span class="pulse-dot">●</span> ONLINE</span></div>
+      <div class="px-3 py-2 rounded-lg border border-slate-800 bg-slate-900 terminal text-xs"><span class="text-slate-500">SERVER</span><span id="serverTime" class="text-emerald-400 ml-2">--:--:--</span></div>
+    </div>
+  </div>
+</header>
+
+<section class="border-b border-slate-800 bg-slate-900/60 overflow-hidden">
+  <div id="ticker" class="max-w-[1800px] mx-auto px-4 py-2 flex gap-3 overflow-x-auto scrollbar"></div>
+</section>
+
+<main class="max-w-[1800px] mx-auto px-4 sm:px-6 py-6 space-y-6">
+  <section><div class="glass border border-slate-800 rounded-2xl p-5">
+    <div class="flex flex-col lg:flex-row justify-between gap-5">
+      <div><div class="text-xs text-emerald-400 uppercase tracking-widest font-bold mb-2"><i class="fa-solid fa-bolt mr-1"></i>Next High Impact Event</div>
+        <h2 id="nextEventName" class="text-2xl font-black">Loading economic calendar...</h2>
+        <p id="nextEventDescription" class="text-sm text-slate-400 mt-1">Waiting for macroeconomic data.</p></div>
+      <div class="text-center lg:text-right"><div id="nextEventCountdown" class="text-3xl sm:text-4xl font-black terminal text-amber-400">--:--:--</div><div class="text-[10px] text-slate-500 uppercase tracking-widest">Countdown</div></div>
+    </div>
+    <div id="nextEventStats" class="mt-5 grid grid-cols-2 md:grid-cols-4 gap-3"></div>
+  </div></section>
+
+  <section>
+    <div class="flex justify-between items-center mb-4"><div><h2 class="text-lg font-bold"><i class="fa-solid fa-chart-simple text-emerald-400 mr-2"></i>Live Markets</h2><p class="text-xs text-slate-500 mt-1">Server-side market data and analytical signals</p></div><div id="marketStatus" class="text-xs terminal text-slate-500">Connecting...</div></div>
+    <div id="marketGrid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3"></div>
+  </section>
+
+  <section class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+    <div class="xl:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden min-h-[450px]">
+      <div class="px-5 py-4 border-b border-slate-800 flex justify-between items-center">
+        <div><h2 class="font-bold"><i class="fa-solid fa-chart-line text-emerald-400 mr-2"></i>Live Chart</h2><p id="chartInstrument" class="text-xs text-slate-500 mt-1">Gold / XAUUSD</p></div>
+        <select id="chartSelector" class="bg-slate-950 border border-slate-700 rounded-lg px-3 py-2 text-xs text-slate-300 outline-none">
+          <option value="XAUUSD">GOLD / XAUUSD</option><option value="EURUSD">EUR/USD</option><option value="GBPUSD">GBP/USD</option><option value="USDJPY">USD/JPY</option><option value="JPN225">NIKKEI 225</option><option value="AUDUSD">AUD/USD</option>
+        </select>
+      </div>
+      <div class="h-[390px] bg-slate-950"><div id="tradingview_chart" class="w-full h-full"></div></div>
+    </div>
+
+    <div id="mainSignalCard" class="signal-wait border rounded-2xl p-5 h-full">
+      <div class="flex justify-between items-start"><div><div class="text-xs text-slate-500 uppercase tracking-widest">Active Signal</div><h2 id="signalSymbol" class="text-2xl font-black mt-1">XAUUSD</h2></div><div id="signalBadge" class="px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-400 border border-amber-500/20 text-xs font-bold">WAIT</div></div>
+      <div class="mt-7"><div class="text-[10px] uppercase tracking-widest text-slate-500">Current / Entry</div><div id="signalEntry" class="text-4xl font-black terminal mt-1">--</div></div>
+      <div class="grid grid-cols-3 gap-2 mt-6">
+        <div class="stat"><span>Stop</span><strong id="signalSL" class="text-red-400 terminal">--</strong></div><div class="stat"><span>TP1</span><strong id="signalTP1" class="text-emerald-400 terminal">--</strong></div><div class="stat"><span>TP2</span><strong id="signalTP2" class="text-emerald-400 terminal">--</strong></div>
+      </div>
+      <div class="mt-6"><div class="text-xs uppercase tracking-widest text-slate-500 mb-3">Technical Confirmation</div>
+        <div class="grid grid-cols-2 gap-2">
+          <div class="stat"><span>RSI</span><strong id="signalRSI">--</strong></div><div class="stat"><span>ADX</span><strong id="signalADX">--</strong></div>
+          <div class="stat"><span>EMA 50</span><strong id="signalEMA50">--</strong></div><div class="stat"><span>EMA 200</span><strong id="signalEMA200">--</strong></div>
+        </div>
+      </div>
+      <div class="mt-6 p-3 rounded-lg bg-slate-950/50 border border-slate-800"><div class="text-[9px] text-slate-500 uppercase tracking-widest">Engine Explanation</div><p id="signalReason" class="text-xs text-slate-300 mt-2 leading-relaxed">Waiting for signal engine...</p></div>
+      <div id="signalTime" class="text-[9px] text-slate-600 terminal mt-4">--</div>
+    </div>
+  </section>
+
+  <section>
+    <div class="flex justify-between items-end mb-4"><div><h2 class="text-lg font-bold"><i class="fa-solid fa-globe text-emerald-400 mr-2"></i>Macroeconomic Intelligence</h2><p class="text-xs text-slate-500 mt-1">Actual vs forecast vs previous</p></div><span id="macroStatus" class="text-[10px] text-slate-600 uppercase tracking-widest">Macro Engine</span></div>
+    <div id="economicTable" class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden"></div>
+  </section>
+
+  <section><div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+    <h2 class="font-bold"><i class="fa-solid fa-brain text-purple-400 mr-2"></i>Macro Scenario Engine</h2><p class="text-xs text-slate-500 mt-1 mb-5">Rules-based interpretation of the latest macro surprises</p>
+    <div id="macroScenario" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4"></div>
+  </div></section>
+
+  <section><div class="bg-slate-900 border border-slate-800 rounded-2xl p-5">
+    <div class="flex flex-col md:flex-row justify-between gap-4 mb-5"><div><h2 class="font-bold"><i class="fa-solid fa-landmark text-blue-400 mr-2"></i>Federal Reserve / FOMC Monitor</h2><p class="text-xs text-slate-500 mt-1">Monetary-policy event monitoring</p></div><div id="fomcStatus" class="text-xs terminal text-slate-500">Loading...</div></div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div class="stat"><span>Fed Rate</span><strong id="fedRate">--</strong></div><div class="stat"><span>Next FOMC</span><strong id="nextFomc">--</strong></div>
+      <div class="stat"><span>Inflation</span><strong id="fedInflation">--</strong></div><div class="stat"><span>Labor</span><strong id="fedLabor">--</strong></div>
+    </div>
+    <div class="mt-5 p-4 rounded-xl bg-slate-950/60 border border-slate-800"><div class="text-[10px] text-slate-500 uppercase tracking-widest">Policy Context</div><p id="fedContext" class="text-sm text-slate-300 mt-2 leading-relaxed">Waiting for FOMC data.</p></div>
+  </div></section>
+
+  <section><div class="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
+    <div class="px-5 py-4 border-b border-slate-800 flex justify-between items-center"><div><h2 class="font-bold"><i class="fa-solid fa-clock-rotate-left text-emerald-400 mr-2"></i>Signal History</h2><p class="text-xs text-slate-500 mt-1">Signals observed in this browser</p></div><button id="clearHistory" class="text-[10px] text-slate-500 hover:text-red-400">CLEAR</button></div>
+    <div id="signalHistory" class="divide-y divide-slate-800"><div class="px-5 py-8 text-center text-xs text-slate-600">No signal history yet.</div></div>
+  </div></section>
+
+  <footer class="border-t border-slate-800 pt-8 pb-10 text-center">
+    <div class="flex flex-wrap justify-center items-center gap-4 text-xs">
+      <span class="text-slate-500">Provided by <span class="text-slate-200 font-bold">RiskyBanks</span></span><span class="text-slate-700">•</span>
+      <a href="https://wa.me/264816923749" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:text-emerald-300"><i class="fa-brands fa-whatsapp mr-1"></i>WhatsApp</a><span class="text-slate-700">•</span>
+      <a href="https://t.me/264816923749" target="_blank" rel="noopener noreferrer" class="text-sky-400 hover:text-sky-300"><i class="fa-brands fa-telegram mr-1"></i>Telegram</a><span class="text-slate-700">•</span>
+      <a href="mailto:itukaleni@gmail.com?subject=Quant-Alpha%20Live%20Support" class="text-purple-400 hover:text-purple-300"><i class="fa-solid fa-envelope mr-1"></i>Live Chat / Email</a>
+    </div>
+    <p class="mt-4 text-xs text-slate-500">Sponsored by <span class="text-slate-300 font-semibold">Castle Investment CC</span></p>
+    <p class="max-w-3xl mx-auto mt-5 text-[10px] leading-relaxed text-slate-600">Market data, economic information and analytical signals are provided for informational and research purposes only. They are not investment advice or a guarantee of future market movements. Trading leveraged financial products involves substantial risk, including the possible loss of capital.</p>
+    <p class="mt-4 text-[9px] text-slate-700">Quant-Alpha Live Signal & Macro Center</p>
+  </footer>
+</main>
+
+<script>
+const API_BASE = (window.QUANT_ALPHA_API_BASE || "").replace(/\/$/,"");
+const INSTRUMENTS = {
+  XAUUSD:{name:"Gold",decimals:2,tv:"OANDA:XAUUSD"},
+  EURUSD:{name:"EUR/USD",decimals:5,tv:"OANDA:EURUSD"},
+  GBPUSD:{name:"GBP/USD",decimals:5,tv:"OANDA:GBPUSD"},
+  USDJPY:{name:"USD/JPY",decimals:3,tv:"OANDA:USDJPY"},
+  JPN225:{name:"Nikkei 225",decimals:0,tv:"TVC:NI225"},
+  AUDUSD:{name:"AUD/USD",decimals:5,tv:"OANDA:AUDUSD"}
+};
+let marketData={},economicData=[],selectedInstrument="XAUUSD",nextEvent=null;
+
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
+const num=(v,d=2)=>v===null||v===undefined||v===""||Number.isNaN(Number(v))?"--":Number(v).toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d});
+const date=v=>v?new Date(v).toLocaleString():"--";
+
+async function api(path){
+  if(!API_BASE) throw new Error("Frontend API URL not configured");
+  const r=await fetch(API_BASE+path,{cache:"no-store"});
+  if(!r.ok) throw new Error("API "+r.status);
+  return r.json();
+}
+function clock(){$("serverTime").textContent=new Date().toLocaleTimeString([],{hour12:false})} setInterval(clock,1000);clock();
+
+function renderMarkets(){
+  const grid=$("marketGrid");grid.innerHTML="";
+  Object.entries(INSTRUMENTS).forEach(([s,c])=>{
+    const d=marketData[s]||{}, ch=Number(d.percentChange||0), dir=d.direction||"WAIT";
+    const b=document.createElement("button");b.type="button";b.className="text-left bg-slate-900 border border-slate-800 rounded-xl p-4 hover:border-slate-600 transition";
+    b.onclick=()=>selectInstrument(s);
+    b.innerHTML=`<div class="flex justify-between"><b class="text-xs">${s}</b><i class="fa-solid fa-chart-column text-slate-600"></i></div>
+      <div class="terminal text-lg font-black mt-3">${num(d.price??d.entry,c.decimals)}</div>
+      <div class="flex justify-between mt-2 text-[10px]"><span class="${ch>=0?"price-up":"price-down"}">${ch>=0?"+":""}${ch.toFixed(2)}%</span>
+      <span class="${dir==="BUY"?"text-emerald-400":dir==="SELL"?"text-red-400":"text-amber-400"}">${esc(dir)}</span></div>`;
+    grid.appendChild(b);
+  });
+  $("ticker").innerHTML=Object.entries(INSTRUMENTS).map(([s,c])=>{
+    const d=marketData[s]||{}, ch=Number(d.percentChange||0);
+    return `<div class="shrink-0 rounded-lg border border-slate-800 bg-slate-950 px-3 py-1.5 text-xs"><b>${s}</b> <span class="terminal ml-2">${num(d.price,c.decimals)}</span> <span class="${ch>=0?"price-up":"price-down"} ml-2">${ch>=0?"+":""}${ch.toFixed(2)}%</span></div>`;
+  }).join("");
+}
+function renderSignal(){
+  const d=marketData[selectedInstrument];if(!d)return;
+  const c=INSTRUMENTS[selectedInstrument],dir=d.direction||"WAIT",card=$("mainSignalCard"),badge=$("signalBadge");
+  $("signalSymbol").textContent=selectedInstrument;badge.textContent=dir;
+  card.classList.remove("signal-buy","signal-sell","signal-wait");card.classList.add(dir==="BUY"?"signal-buy":dir==="SELL"?"signal-sell":"signal-wait");
+  badge.className="px-3 py-1.5 rounded-lg text-xs font-bold "+(dir==="BUY"?"bg-emerald-500/10 text-emerald-400 border border-emerald-500/20":dir==="SELL"?"bg-red-500/10 text-red-400 border border-red-500/20":"bg-amber-500/10 text-amber-400 border border-amber-500/20");
+  $("signalEntry").textContent=num(d.entry??d.price,c.decimals);$("signalSL").textContent=num(d.stopLoss,c.decimals);$("signalTP1").textContent=num(d.tp1,c.decimals);$("signalTP2").textContent=num(d.tp2,c.decimals);
+  const i=d.indicators||{};$("signalRSI").textContent=num(i.rsi,1);$("signalADX").textContent=num(i.adx,1);$("signalEMA50").textContent=num(i.ema50,c.decimals);$("signalEMA200").textContent=num(i.ema200,c.decimals);
+  $("signalReason").textContent=d.reason||"No explanation available.";$("signalTime").textContent=d.timestamp?"Updated: "+date(d.timestamp):"--";
+  saveHistoryIfChanged();
+}
+function selectInstrument(s){selectedInstrument=s;$("chartSelector").value=s;$("chartInstrument").textContent=INSTRUMENTS[s].name;renderSignal();loadTradingView(s)}
+function loadTradingView(s){
+  const box=$("tradingview_chart");box.innerHTML="";
+  const wrap=document.createElement("div");wrap.className="tradingview-widget-container";wrap.style="height:100%;width:100%";
+  const w=document.createElement("div");w.className="tradingview-widget-container__widget";w.style="height:100%;width:100%";wrap.appendChild(w);box.appendChild(wrap);
+  const script=document.createElement("script");script.src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";script.type="text/javascript";script.async=true;
+  script.text=JSON.stringify({autosize:true,symbol:INSTRUMENTS[s].tv,interval:"15",timezone:"Africa/Windhoek",theme:"dark",style:"1",locale:"en",allow_symbol_change:false,hide_top_toolbar:false,hide_legend:false,save_image:false,calendar:false,support_host:"https://www.tradingview.com"});
+  wrap.appendChild(script);
+}
+async function loadMarkets(){
+  try{marketData=await api("/api/signals");renderMarkets();renderSignal();$("marketStatus").textContent="LIVE • "+new Date().toLocaleTimeString();$("systemStatus").innerHTML='<span class="pulse-dot">●</span> ONLINE';}
+  catch(e){console.error(e);$("marketStatus").textContent="DATA CONNECTION ERROR";$("systemStatus").textContent="BACKEND ERROR";}
+}
+async function loadEconomic(){
+  try{const d=await api("/api/economic-events");economicData=Array.isArray(d)?d:(d.events||[]);renderEconomic();findNext();renderScenario();renderFomc();}
+  catch(e){console.error(e);$("economicTable").innerHTML='<div class="p-8 text-center text-xs text-slate-600">Economic provider is not configured. Add FINNHUB_API_KEY or FRED_API_KEY on the backend.</div>'}
+}
+function renderEconomic(){
+  if(!economicData.length){$("economicTable").innerHTML='<div class="p-8 text-center text-xs text-slate-600">No economic events returned.</div>';return}
+  $("economicTable").innerHTML=economicData.slice(0,30).map(e=>{
+    const a=e.actual,f=e.forecast??e.estimate,p=e.previous??e.prev;
+    const an=Number(String(a??"").replace(/[,%]/g,"")),fn=Number(String(f??"").replace(/[,%]/g,""));let s="--";
+    if(Number.isFinite(an)&&Number.isFinite(fn))s=(an-fn).toFixed(2);
+    const imp=String(e.impact||"HIGH").toUpperCase();
+    return `<div class="grid grid-cols-2 md:grid-cols-6 gap-3 px-5 py-4 border-b border-slate-800 text-xs">
+      <div><b>${esc(e.name||e.event||"Event")}</b><div class="text-[9px] text-slate-600 mt-1">${date(e.date||e.time)}</div></div>
+      <div><span class="${imp==="HIGH"?"text-red-400":imp==="MEDIUM"?"text-amber-400":"text-slate-400"} font-bold">${esc(imp)}</span></div>
+      <div><span class="text-slate-500">Actual</span><div class="terminal mt-1">${esc(a??"--")}</div></div>
+      <div><span class="text-slate-500">Forecast</span><div class="terminal mt-1">${esc(f??"--")}</div></div>
+      <div><span class="text-slate-500">Previous</span><div class="terminal mt-1">${esc(p??"--")}</div></div>
+      <div><span class="text-slate-500">Surprise</span><div class="terminal mt-1 ${s!=="--"?(Number(s)>=0?"text-emerald-400":"text-red-400"):"text-slate-600"}">${s}</div></div>
+    </div>`;
+  }).join("");
+}
+function findNext(){
+  const now=Date.now();nextEvent=economicData.filter(e=>e.date||e.time).map(e=>({...e,date:e.date||e.time})).filter(e=>new Date(e.date).getTime()>now).sort((a,b)=>new Date(a.date)-new Date(b.date))[0]||null;
+  if(!nextEvent){$("nextEventName").textContent="No upcoming event";$("nextEventDescription").textContent="No future event was returned by the economic provider.";return}
+  $("nextEventName").textContent=nextEvent.name||nextEvent.event||"Economic Event";$("nextEventDescription").textContent=nextEvent.description||`${nextEvent.country||"US"} economic release`;
+  $("nextEventStats").innerHTML=[["Forecast",nextEvent.forecast??nextEvent.estimate??"--"],["Previous",nextEvent.previous??nextEvent.prev??"--"],["Impact",nextEvent.impact||"HIGH"],["Release",new Date(nextEvent.date).toLocaleString()]].map(x=>`<div class="stat"><span>${x[0]}</span><strong>${esc(x[1])}</strong></div>`).join("");
+}
+function countdown(){if(!nextEvent)return;let n=new Date(nextEvent.date)-Date.now();if(n<=0){$("nextEventCountdown").textContent="RELEASED";return}let d=Math.floor(n/86400000);n%=86400000;let h=Math.floor(n/3600000);n%=3600000;let m=Math.floor(n/60000);let s=Math.floor((n%60000)/1000);$("nextEventCountdown").textContent=`${d}d ${String(h).padStart(2,"0")}h ${String(m).padStart(2,"0")}m ${String(s).padStart(2,"0")}s`}
+setInterval(countdown,1000);
+function renderScenario(){
+  const find=k=>economicData.find(e=>(e.name||e.event||"").toUpperCase().includes(k));
+  const compare=e=>{if(!e)return"WAITING FOR DATA";const a=Number(String(e.actual??"").replace(/[,%]/g,"")),f=Number(String(e.forecast??e.estimate??"").replace(/[,%]/g,""));return Number.isFinite(a)&&Number.isFinite(f)?a>f?"ABOVE EXPECTATION":a<f?"BELOW EXPECTATION":"IN LINE":"WAITING FOR DATA"};
+  const cpi=find("CPI"),nfp=find("NONFARM")||find("NFP"),gdp=find("GDP"),p=compare(cpi);
+  const policy=p==="ABOVE EXPECTATION"?"GREATER INFLATION PRESSURE":p==="BELOW EXPECTATION"?"LOWER INFLATION PRESSURE":"DATA INSUFFICIENT";
+  $("macroScenario").innerHTML=[["Inflation",p,"text-amber-400","fa-fire"],["Labor",compare(nfp),"text-blue-400","fa-briefcase"],["Growth",compare(gdp),"text-purple-400","fa-chart-line"],["Policy Sensitivity",policy,"text-emerald-400","fa-landmark"]].map(x=>`<div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4"><div class="flex justify-between"><span class="text-[10px] uppercase tracking-widest text-slate-500">${x[0]}</span><i class="fa-solid ${x[3]} ${x[2]}"></i></div><div class="mt-3 font-bold ${x[2]}">${x[1]}</div></div>`).join("");
+}
+function renderFomc(){
+  const f=economicData.find(e=>String(e.type||"").toUpperCase()==="FOMC"||(e.name||e.event||"").toUpperCase().includes("FOMC"));
+  $("fomcStatus").textContent=f?"FOMC EVENT MONITOR":"FOMC event not returned";
+  if(f){$("nextFomc").textContent=new Date(f.date||f.time).toLocaleDateString();$("fedContext").textContent=f.description||"Federal Reserve event detected."}
+  const c=economicData.find(e=>(e.name||e.event||"").toUpperCase().includes("CPI"));const l=economicData.find(e=>(e.name||e.event||"").toUpperCase().includes("NONFARM")||(e.name||e.event||"").toUpperCase().includes("NFP"));
+  $("fedInflation").textContent=c?.actual??"--";$("fedLabor").textContent=l?.actual??"--";
+}
+function history(){try{return JSON.parse(localStorage.getItem("qa_signal_history")||"[]")}catch{return[]}}
+function saveHistoryIfChanged(){const d=marketData[selectedInstrument];if(!d?.direction||d.direction==="WAIT")return;const h=history();const key=selectedInstrument+"|"+d.timestamp+"|"+d.direction;if(h[0]?.key===key)return;h.unshift({key,symbol:selectedInstrument,direction:d.direction,entry:d.entry??d.price,timestamp:d.timestamp||new Date().toISOString()});localStorage.setItem("qa_signal_history",JSON.stringify(h.slice(0,30)));renderHistory()}
+function renderHistory(){const h=history();$("signalHistory").innerHTML=h.length?h.map(x=>`<div class="px-5 py-3 flex justify-between text-xs"><span><b>${esc(x.symbol)}</b> <span class="${x.direction==="BUY"?"text-emerald-400":"text-red-400"} ml-2">${esc(x.direction)}</span></span><span class="terminal text-slate-500">${num(x.entry,2)} • ${date(x.timestamp)}</span></div>`).join(""):'<div class="px-5 py-8 text-center text-xs text-slate-600">No signal history yet.</div>'}
+$("clearHistory").onclick=()=>{localStorage.removeItem("qa_signal_history");renderHistory()};$("chartSelector").onchange=e=>selectInstrument(e.target.value);
+
+loadTradingView("XAUUSD");renderHistory();loadMarkets();loadEconomic();
+setInterval(loadMarkets,60000);setInterval(loadEconomic,300000);
+</script>
+</body>
+</html>
